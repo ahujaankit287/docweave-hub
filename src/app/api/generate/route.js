@@ -95,58 +95,77 @@ async function analyzeRepository(repoUrl, branch) {
 }
 
 async function generateWithLLM(analysis, apiKey) {
-  // Use the actual NVIDIA OpenAI API call as in the original docweave-snackoverflow
-  const prompt = `You are a technical documentation expert. Generate comprehensive service documentation based on the following detailed repository analysis:
+  // Build comprehensive prompt with real analysis data
+  const languageInfo = analysis.languages?.map(l => `${l.language} (${l.fileCount} files)`).join(', ') || 'Unknown';
+  const frameworkInfo = analysis.frameworks?.join(', ') || 'None detected';
+  
+  const prompt = `You are a technical documentation expert. Generate comprehensive service documentation based on this REAL repository analysis:
 
-## Repository Information
-- **Name**: ${analysis.repository?.name || 'Unknown'}
-- **Languages**: ${analysis.languages?.join(', ') || 'Unknown'}
-- **Frameworks**: ${analysis.frameworks?.join(', ') || 'None detected'}
+## Repository Analysis Results
+- **Repository**: ${analysis.repository?.name || 'Unknown'}
+- **Analyzed**: ${analysis.repository?.analyzedAt || 'Unknown'}
+- **Languages**: ${languageInfo}
+- **Frameworks**: ${frameworkInfo}
+- **Package Manager**: ${analysis.dependencies?.packageManager || 'Unknown'}
+
+## Code Metrics
 - **Total Files**: ${analysis.metrics?.totalFiles || 0}
 - **Code Files**: ${analysis.metrics?.codeFiles || 0}
+- **Estimated Lines of Code**: ${analysis.metrics?.estimatedLinesOfCode || 0}
+- **Average File Size**: ${analysis.metrics?.averageFileSize || 0} bytes
 
 ## Project Structure
 \`\`\`
 ${analysis.structure || 'Structure not available'}
 \`\`\`
 
-## Dependencies
-${JSON.stringify(analysis.dependencies, null, 2)}
+## Dependencies Analysis
+**Production Dependencies**: ${analysis.dependencies?.production?.length || 0} packages
+**Development Dependencies**: ${analysis.dependencies?.development?.length || 0} packages
+**Total Dependencies**: ${analysis.dependencies?.total || 0}
+
+Key Dependencies:
+${analysis.dependencies?.production?.slice(0, 10).map(dep => `- ${dep}`).join('\n') || 'None found'}
 
 ## Entry Points
-${analysis.entryPoints?.join(', ') || 'None found'}
+${analysis.entryPoints?.length > 0 ? analysis.entryPoints.map(ep => `- ${ep}`).join('\n') : 'No clear entry points found'}
 
-## Configuration Files
-${analysis.configFiles?.join(', ') || 'None found'}
+## Configuration Files Found
+${analysis.configFiles?.length > 0 ? analysis.configFiles.slice(0, 15).map(cf => `- ${cf}`).join('\n') : 'No config files found'}
 
 ## API Specifications
-${analysis.apiSpecs?.length > 0 ? analysis.apiSpecs.map(spec => `- ${spec.type}: ${spec.file}`).join('\n') : 'No API specs found'}
+${analysis.apiSpecs?.length > 0 ? 
+  analysis.apiSpecs.map(spec => `- **${spec.type}**: ${spec.file} (${spec.size} bytes)`).join('\n') : 
+  'No API specifications found'}
 
-## README Content
-${analysis.readme?.content ? analysis.readme.content.slice(0, 2000) + '...' : 'No README found'}
+## Test Coverage
+**Test Files Found**: ${analysis.testFiles?.length || 0}
+${analysis.testFiles?.length > 0 ? 
+  analysis.testFiles.slice(0, 10).map(tf => `- ${tf}`).join('\n') : 
+  'No test files detected'}
 
-## Test Files
-${analysis.testFiles?.join(', ') || 'No tests found'}
-
-## Documentation Files
-${analysis.documentationFiles?.join(', ') || 'Limited documentation'}
+## README Analysis
+${analysis.readme ? 
+  `**File**: ${analysis.readme.filename}
+**Length**: ${analysis.readme.fullLength} characters
+**Content Preview**:
+${analysis.readme.content}` : 
+  'No README file found'}
 
 ---
 
-Based on this comprehensive analysis, generate a well-structured markdown document that includes:
+Based on this REAL analysis data, generate a comprehensive markdown documentation that includes:
 
-1. **Service Overview** - What this service does, its purpose and main functionality (infer from structure, dependencies, and README)
-2. **Architecture** - High-level architecture and key components based on the project structure
-3. **API Documentation** - If API specs are found, document the endpoints; otherwise infer API structure from code organization
-4. **Setup & Installation** - How to set up and run the service based on detected frameworks and dependencies
-5. **Configuration** - Environment variables and config files found in the analysis
-6. **Usage Examples** - Code examples based on the detected languages and frameworks
-7. **Dependencies** - Detailed breakdown of the dependencies found
-8. **Development** - How to contribute, build, test, and deploy based on the project structure
-9. **File Structure** - Explain the key directories and their purposes
+1. **Service Overview** - Infer the service purpose from the actual code structure, dependencies, and README content
+2. **Architecture** - Describe the architecture based on the real project structure and frameworks detected
+3. **Technology Stack** - Detail the actual languages, frameworks, and key dependencies found
+4. **Setup & Installation** - Provide setup instructions based on the detected package manager and dependencies
+5. **Configuration** - Document the configuration files and environment setup based on actual files found
+6. **API Documentation** - If API specs were found, document them; otherwise infer API structure from the codebase
+7. **Development Workflow** - Based on test files and build configuration found
+8. **File Structure Guide** - Explain the actual directory structure and key files
 
-Make the documentation clear, comprehensive, and developer-friendly. Use proper markdown formatting with headers, code blocks, and tables where appropriate. Be specific about the technologies and patterns you observe in the codebase.
-`;
+Be specific and accurate - use only the information provided in the analysis. Don't make assumptions beyond what the data shows. Focus on practical, actionable documentation that reflects the real codebase structure.`;
 
   try {
     const response = await fetch(
@@ -177,42 +196,72 @@ Make the documentation clear, comprehensive, and developer-friendly. Use proper 
   } catch (error) {
     console.error("LLM generation error:", error);
 
-    // Fallback to a basic template if API fails
-    const repoName = analysis.structure.split("/")[0] || "Repository";
+    // Fallback to a template using real analysis data if API fails
+    const repoName = analysis.repository?.name || "Repository";
+    const languageList = analysis.languages?.map(l => l.language).join(", ") || "Unknown";
+    const frameworkList = analysis.frameworks?.join(", ") || "None detected";
+    
     return `# ${repoName} Documentation
 
 ## Service Overview
-[TODO: Add service description - API call failed]
+This repository contains a ${languageList} project${analysis.frameworks?.length > 0 ? ` using ${frameworkList}` : ''}.
 
-**Detected Information:**
-- **Languages**: ${analysis.languages.join(", ")}
-- **Frameworks**: ${analysis.frameworks.join(", ") || "None detected"}
-- **Dependencies**: ${analysis.dependencies}
+**Repository Analysis:**
+- **Total Files**: ${analysis.metrics?.totalFiles || 0}
+- **Code Files**: ${analysis.metrics?.codeFiles || 0}
+- **Languages**: ${languageList}
+- **Frameworks**: ${frameworkList}
+- **Dependencies**: ${analysis.dependencies?.total || 0} packages
 
-## Architecture
-### Project Structure
+## Project Structure
 \`\`\`
-${analysis.structure}
+${analysis.structure || 'Structure not available'}
 \`\`\`
 
-## API Documentation
-${analysis.apiSpecs}
+## Technology Stack
+${analysis.languages?.map(l => `- **${l.language}**: ${l.fileCount} files`).join('\n') || 'No languages detected'}
 
-## Setup & Installation
-[TODO: Add setup instructions]
+## Dependencies
+**Package Manager**: ${analysis.dependencies?.packageManager || 'Unknown'}
+**Production Dependencies**: ${analysis.dependencies?.production?.length || 0}
+**Development Dependencies**: ${analysis.dependencies?.development?.length || 0}
+
+${analysis.dependencies?.production?.length > 0 ? 
+  `### Key Dependencies
+${analysis.dependencies.production.slice(0, 10).map(dep => `- ${dep}`).join('\n')}` : 
+  'No dependencies found'}
+
+## Entry Points
+${analysis.entryPoints?.length > 0 ? 
+  analysis.entryPoints.map(ep => `- \`${ep}\``).join('\n') : 
+  'No clear entry points identified'}
 
 ## Configuration
-[TODO: Add configuration details]
+${analysis.configFiles?.length > 0 ? 
+  `Configuration files found:
+${analysis.configFiles.slice(0, 10).map(cf => `- \`${cf}\``).join('\n')}` : 
+  'No configuration files found'}
 
-## Usage Examples
-[TODO: Add usage examples]
+${analysis.apiSpecs?.length > 0 ? 
+  `## API Documentation
+${analysis.apiSpecs.map(spec => `- **${spec.type}**: \`${spec.file}\``).join('\n')}` : 
+  ''}
 
-## Development
-[TODO: Add development instructions]
+${analysis.testFiles?.length > 0 ? 
+  `## Testing
+Test files found: ${analysis.testFiles.length}
+${analysis.testFiles.slice(0, 5).map(tf => `- \`${tf}\``).join('\n')}` : 
+  ''}
+
+${analysis.readme ? 
+  `## README Content
+${analysis.readme.content.slice(0, 1000)}${analysis.readme.hasMore ? '...' : ''}` : 
+  ''}
 
 ---
-*Note: This documentation was generated with limited information due to API connectivity issues.*
-*Generated on: ${new Date().toLocaleString()}*`;
+*Note: This documentation was generated from repository analysis. API call failed, so this is a basic template.*
+*Generated on: ${new Date().toLocaleString()}*
+*Repository analyzed: ${analysis.repository?.analyzedAt || 'Unknown'}*`;
   }
 }
 

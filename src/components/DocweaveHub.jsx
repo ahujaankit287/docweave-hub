@@ -257,42 +257,8 @@ export default function DocweaveHub() {
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
-        <div className="w-80 bg-gray-800 p-4 space-y-4">
-          <div>
-            <h2 className="text-lg font-semibold mb-4">
-              Existing Repositories
-            </h2>
-            <div className="space-y-2">
-              {repositories
-                .filter((repo) => repo.type === "existing")
-                .map((repo) => (
-                  <div
-                    key={repo.id}
-                    className="flex items-center space-x-3 p-2 rounded hover:bg-gray-700"
-                  >
-                    <GitBranch className="w-4 h-4 text-gray-400" />
-                    <span className="flex-1 text-sm">{repo.name}</span>
-                    <div className="flex items-center space-x-2">
-                      {repo.hasDocumentation && (
-                        <button
-                          onClick={() => viewDocumentation(repo.id, repo.name)}
-                          className="p-1 hover:bg-gray-600 rounded"
-                          title="View Documentation"
-                        >
-                          <Eye className="w-4 h-4 text-blue-400" />
-                        </button>
-                      )}
-                      {getStatusIcon(repo.status)}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-
         {/* Main Content */}
-        <div className="flex-1 p-6 space-y-6">
+        <div className="flex-1 p-6 space-y-6 max-w-4xl mx-auto">
           {/* Add Repository Section */}
           <div className="bg-gray-800 rounded-lg p-6">
             <h3 className="text-lg font-semibold mb-4">Add Repository</h3>
@@ -330,6 +296,16 @@ export default function DocweaveHub() {
                 </div>
               </div>
 
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={autoMerge}
+                  onChange={(e) => setAutoMerge(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-sm">Auto-merge README commit</span>
+              </div>
+
               <div className="text-sm text-gray-400">
                 Last updated: 2 minutes ago
               </div>
@@ -358,16 +334,6 @@ export default function DocweaveHub() {
                       : "Add & Auto Generate Documentation"}
                   </span>
                 </button>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={autoMerge}
-                  onChange={(e) => setAutoMerge(e.target.checked)}
-                  className="rounded"
-                />
-                <span className="text-sm">Auto-merge README commit</span>
               </div>
             </div>
           </div>
@@ -407,102 +373,6 @@ export default function DocweaveHub() {
                   </div>
                 ))}
             </div>
-          </div>
-        </div>
-
-        {/* Documentation Preview */}
-        <div className="w-96 bg-gray-800 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Documentation Preview</h3>
-            <div className="flex space-x-2">
-              <button className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm flex items-center space-x-1">
-                <Edit3 className="w-3 h-3" />
-                <span>Create/Update README.md</span>
-              </button>
-              <button className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm flex items-center space-x-1">
-                <GitMerge className="w-3 h-3" />
-                <span>Open Merge Request in GitHub</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-gray-900 rounded p-4 font-mono text-xs overflow-auto max-h-96">
-            <div className="text-gray-400 mb-2">📋 Table of Contents</div>
-            <div className="space-y-1 text-gray-300">
-              <div>📋 Table of Contents</div>
-              <div className="ml-4">
-                <div>🔍 Awesome project</div>
-                <div className="text-blue-400">
-                  {`{`}
-                  <br />
-                  &nbsp;&nbsp;#awesome (dev) : #awesome(localhost:3001) : {`{`}
-                  <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;#routes : #awesome(localhost:3001/api)
-                  : {`{`}
-                  <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#auth :
-                  #awesome(localhost:3001/api/auth)
-                  <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;{`}`}
-                  <br />
-                  &nbsp;&nbsp;{`}`}
-                  <br />
-                  {`}`}
-                </div>
-              </div>
-              <div className="mt-4">
-                <div>🔍 Overview</div>
-                <div className="text-gray-400">Project definition</div>
-              </div>
-              <div className="mt-4">
-                <div className="text-blue-400">
-                  #awesome-client-store-data-v2 : {`{`}
-                  <br />
-                  &nbsp;&nbsp;#service (dev) : #awesome(localhost:3001) : {`{`}
-                  <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;#routes : #awesome(localhost:3001/api)
-                  : {`{`}
-                  <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#auth :
-                  #awesome(localhost:3001/api/auth)
-                  <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;{`}`}
-                  <br />
-                  &nbsp;&nbsp;{`}`}
-                  <br />
-                  {`}`}
-                </div>
-              </div>
-              <div className="mt-4">
-                <div>🔍 Overview</div>
-                <div className="text-gray-400">Project definition</div>
-              </div>
-              <div className="mt-4">
-                <div className="text-blue-400">
-                  #awesome-client-store-data-v3 : {`{`}
-                  <br />
-                  &nbsp;&nbsp;#build (dev) #api #auth #localhost:3001) : {`{`}
-                  <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;#routes : #awesome(localhost:3001/api)
-                  : {`{`}
-                  <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#auth :
-                  #awesome(localhost:3001/api/auth)
-                  <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;{`}`}
-                  <br />
-                  &nbsp;&nbsp;{`}`}
-                  <br />
-                  {`}`}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 text-center text-xs text-gray-400 flex items-center justify-center space-x-1">
-            <span>Generated with</span>
-            <Heart className="w-3 h-3 text-red-500" />
-            <span>by docweave</span>
           </div>
         </div>
       </div>
