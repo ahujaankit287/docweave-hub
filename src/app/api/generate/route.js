@@ -131,9 +131,9 @@ Make the documentation clear, comprehensive, and developer-friendly. Use proper 
         body: JSON.stringify({
           model: "openai/gpt-oss-120b",
           messages: [{ role: "user", content: prompt }],
-          temperature: 0.7,
+          temperature: 0.1,
           top_p: 1,
-          max_tokens: 4096,
+          max_tokens: 40960,
           stream: false,
         }),
       }
