@@ -83,40 +83,69 @@ async function generateDocumentation(repoUrl, branch, apiKey, generationId) {
 }
 
 async function analyzeRepository(repoUrl, branch) {
-  // Use the migrated analyzer from Python codebase
-  const { CodeAnalyzer, APISpecAnalyzer } = await import("@/lib/analyzer");
-
+  // Use the comprehensive local clone-based analyzer
+  const { CodeAnalyzer } = await import("@/lib/analyzer");
+  
   const codeAnalyzer = new CodeAnalyzer();
-  const apiAnalyzer = new APISpecAnalyzer();
-
+  
+  // The new analyzer returns comprehensive analysis including API specs
   const analysis = await codeAnalyzer.analyzeRepository(repoUrl, branch);
-  const apiSpecs = await apiAnalyzer.findApiSpecs(repoUrl, branch);
-
-  return {
-    ...analysis,
-    apiSpecs,
-  };
+  
+  return analysis;
 }
 
 async function generateWithLLM(analysis, apiKey) {
   // Use the actual NVIDIA OpenAI API call as in the original docweave-snackoverflow
-  const prompt = `You are a technical documentation expert. Generate comprehensive service documentation based on the following repository analysis:
+  const prompt = `You are a technical documentation expert. Generate comprehensive service documentation based on the following detailed repository analysis:
 
-${JSON.stringify(analysis, null, 2)}
+## Repository Information
+- **Name**: ${analysis.repository?.name || 'Unknown'}
+- **Languages**: ${analysis.languages?.join(', ') || 'Unknown'}
+- **Frameworks**: ${analysis.frameworks?.join(', ') || 'None detected'}
+- **Total Files**: ${analysis.metrics?.totalFiles || 0}
+- **Code Files**: ${analysis.metrics?.codeFiles || 0}
 
+## Project Structure
+\`\`\`
+${analysis.structure || 'Structure not available'}
+\`\`\`
 
-Generate a well-structured markdown document that includes:
+## Dependencies
+${JSON.stringify(analysis.dependencies, null, 2)}
 
-1. **Service Overview** - What this service does, its purpose and main functionality
-2. **Architecture** - High-level architecture and key components
-3. **API Documentation** - Endpoints, request/response formats, authentication
-4. **Setup & Installation** - How to set up and run the service
-5. **Configuration** - Environment variables, config files, and settings
-6. **Usage Examples** - Code examples and common use cases
-7. **Dependencies** - Key libraries and external services
-8. **Development** - How to contribute, build, test, and deploy
+## Entry Points
+${analysis.entryPoints?.join(', ') || 'None found'}
 
-Make the documentation clear, comprehensive, and developer-friendly. Use proper markdown formatting with headers, code blocks, and tables where appropriate.
+## Configuration Files
+${analysis.configFiles?.join(', ') || 'None found'}
+
+## API Specifications
+${analysis.apiSpecs?.length > 0 ? analysis.apiSpecs.map(spec => `- ${spec.type}: ${spec.file}`).join('\n') : 'No API specs found'}
+
+## README Content
+${analysis.readme?.content ? analysis.readme.content.slice(0, 2000) + '...' : 'No README found'}
+
+## Test Files
+${analysis.testFiles?.join(', ') || 'No tests found'}
+
+## Documentation Files
+${analysis.documentationFiles?.join(', ') || 'Limited documentation'}
+
+---
+
+Based on this comprehensive analysis, generate a well-structured markdown document that includes:
+
+1. **Service Overview** - What this service does, its purpose and main functionality (infer from structure, dependencies, and README)
+2. **Architecture** - High-level architecture and key components based on the project structure
+3. **API Documentation** - If API specs are found, document the endpoints; otherwise infer API structure from code organization
+4. **Setup & Installation** - How to set up and run the service based on detected frameworks and dependencies
+5. **Configuration** - Environment variables and config files found in the analysis
+6. **Usage Examples** - Code examples based on the detected languages and frameworks
+7. **Dependencies** - Detailed breakdown of the dependencies found
+8. **Development** - How to contribute, build, test, and deploy based on the project structure
+9. **File Structure** - Explain the key directories and their purposes
+
+Make the documentation clear, comprehensive, and developer-friendly. Use proper markdown formatting with headers, code blocks, and tables where appropriate. Be specific about the technologies and patterns you observe in the codebase.
 `;
 
   try {

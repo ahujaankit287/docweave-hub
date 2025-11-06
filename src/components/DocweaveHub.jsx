@@ -299,27 +299,6 @@ export default function DocweaveHub() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Team Documentation Portal
-                </label>
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-sm text-gray-400">
-                    Branch (optional)
-                  </span>
-                  <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
-                </div>
-                <div className="flex items-center space-x-2 mb-4">
-                  <input
-                    type="checkbox"
-                    checked={autoUpdate}
-                    onChange={(e) => setAutoUpdate(e.target.checked)}
-                    className="rounded"
-                  />
-                  <span className="text-sm">Auto-update on push</span>
-                </div>
-              </div>
-
-              <div>
                 <input
                   type="text"
                   placeholder="Paste Git Repository URL (GitHub, Bitbucket...)"
