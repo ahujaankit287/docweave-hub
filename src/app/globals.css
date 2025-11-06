@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "highlight.js/styles/github-dark.css";
 
 :root {
   --background: #111827;
@@ -34,4 +35,31 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+/* GitHub-style markdown dark mode */
+.github-markdown-dark {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+}
+
+.github-markdown-dark pre {
+  background-color: #1f2937 !important;
+  border-radius: 6px;
+}
+
+.github-markdown-dark code {
+  background-color: rgba(55, 65, 81, 0.8);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 85%;
+  color: #10b981;
+}
+
+.github-markdown-dark pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 100%;
+  color: #d1d5db;
 }

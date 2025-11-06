@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { setDocumentation } from "@/lib/storage";
 
 // In-memory storage for demo (use database in production)
 let repositories = [
@@ -10,6 +11,7 @@ let repositories = [
     status: "success",
     branch: "main",
     lastUpdated: new Date().toISOString(),
+    hasDocumentation: true,
   },
   {
     id: "2",
@@ -19,6 +21,7 @@ let repositories = [
     status: "success",
     branch: "main",
     lastUpdated: new Date().toISOString(),
+    hasDocumentation: true,
   },
   {
     id: "3",
@@ -28,6 +31,7 @@ let repositories = [
     status: "success",
     branch: "main",
     lastUpdated: new Date().toISOString(),
+    hasDocumentation: true,
   },
 ];
 
@@ -65,7 +69,38 @@ export async function POST(request) {
       const repo = repositories.find((r) => r.id === newRepo.id);
       if (repo) {
         repo.status = "success";
+        repo.hasDocumentation = true;
         repo.lastUpdated = new Date().toISOString();
+        
+        // Generate sample documentation
+        setDocumentation(repo.id, `# ${repo.name} Documentation
+
+## Service Overview
+Auto-generated documentation for ${repo.name}.
+
+## Architecture
+[TODO: Add architecture details based on code analysis]
+
+## API Documentation
+[TODO: Add API endpoints discovered from the codebase]
+
+## Setup & Installation
+\`\`\`bash
+git clone ${repo.url}
+cd ${repo.name}
+# [TODO: Add specific setup instructions]
+\`\`\`
+
+## Configuration
+[TODO: Add configuration details found in the repository]
+
+## Dependencies
+[TODO: List dependencies from package.json or requirements.txt]
+
+## Development
+[TODO: Add development workflow instructions]
+
+Generated on: ${new Date().toLocaleString()}`);
       }
     }, 5000);
 

@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 // In-memory storage for generation status (use database in production)
 const generationStatus = {}
 
 export async function GET(request, { params }) {
-  const { id } = params
+  const { id } = await params
 
   if (!id) {
     return NextResponse.json(
@@ -23,7 +23,7 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
-  const { id } = params
+  const { id } = await params
   const body = await request.json()
 
   generationStatus[id] = {
