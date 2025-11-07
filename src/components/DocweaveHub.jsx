@@ -9,17 +9,15 @@ import {
   User,
   ChevronDown,
   Plus,
-  Edit3,
-  GitMerge,
   CheckCircle,
   AlertCircle,
   X,
   RefreshCw,
-  Heart,
-  Eye,
+  ExternalLink,
   Copy,
   Download,
   Bell,
+  Settings,
 } from "lucide-react";
 
 export default function DocweaveHub() {
@@ -29,7 +27,6 @@ export default function DocweaveHub() {
   const [autoUpdate, setAutoUpdate] = useState(false);
   const [autoMerge, setAutoMerge] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedDocumentation, setSelectedDocumentation] = useState("");
   const [selectedRepoName, setSelectedRepoName] = useState("");
@@ -75,18 +72,11 @@ export default function DocweaveHub() {
         setNewRepoBranch("main");
 
         // Start documentation generation
-        if (apiKey) {
-          setNotification({
-            type: "info",
-            message: `Generating documentation for ${data.repository.name}...`,
-          });
-          generateDocumentation(
-            data.repository.id,
-            newRepoUrl,
-            newRepoBranch,
-            apiKey
-          );
-        }
+        setNotification({
+          type: "info",
+          message: `Generating documentation for ${data.repository.name}...`,
+        });
+        generateDocumentation(data.repository.id, newRepoUrl, newRepoBranch);
       }
     } catch (error) {
       console.error("Failed to add repository:", error);
@@ -95,7 +85,7 @@ export default function DocweaveHub() {
     }
   };
 
-  const generateDocumentation = async (repoId, repoUrl, branch, apiKey) => {
+  const generateDocumentation = async (repoId, repoUrl, branch) => {
     try {
       setIsLoading(true);
 
@@ -105,7 +95,6 @@ export default function DocweaveHub() {
         body: JSON.stringify({
           repoUrl,
           branch,
-          apiKey,
         }),
       });
 
@@ -123,7 +112,7 @@ export default function DocweaveHub() {
             repo.id === repoId
               ? {
                   ...repo,
-                  status: "success",
+                  status: "up-to-date",
                   hasDocumentation: true,
                   lastUpdated: new Date().toISOString(),
                 }
@@ -159,22 +148,6 @@ export default function DocweaveHub() {
     }
   };
 
-  const viewDocumentation = async (repoId, repoName) => {
-    try {
-      const response = await fetch(`/api/documentation/${repoId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setSelectedDocumentation(data.documentation);
-        setSelectedRepoName(repoName);
-        setShowModal(true);
-      } else {
-        console.error("Documentation not found");
-      }
-    } catch (error) {
-      console.error("Failed to fetch documentation:", error);
-    }
-  };
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(selectedDocumentation);
   };
@@ -193,7 +166,6 @@ export default function DocweaveHub() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "success":
       case "up-to-date":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case "generating":
@@ -250,9 +222,19 @@ export default function DocweaveHub() {
           </div>
           <h1 className="text-xl font-semibold">Docweave Hub</h1>
         </div>
-        <div className="flex items-center space-x-2">
-          <User className="w-6 h-6" />
-          <ChevronDown className="w-4 h-4" />
+        <div className="flex items-center space-x-4">
+          <a
+            href="/manage"
+            className="flex items-center space-x-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+            title="Manage Integrations"
+          >
+            <Settings className="w-4 h-4" />
+            <span className="text-sm">Manage</span>
+          </a>
+          <div className="flex items-center space-x-2">
+            <User className="w-6 h-6" />
+            <ChevronDown className="w-4 h-4" />
+          </div>
         </div>
       </header>
 
@@ -285,14 +267,14 @@ export default function DocweaveHub() {
                     />
                   </div>
                 </div>
-                <div className="flex items-center space-x-2 mt-2">
+                <div className="flex items-center space-x-2 mt-4">
                   <input
                     type="checkbox"
                     checked={autoUpdate}
                     onChange={(e) => setAutoUpdate(e.target.checked)}
                     className="rounded"
                   />
-                  <span className="text-sm">Auto-update on push</span>
+                  <span className="text-sm">Auto-run on code change</span>
                 </div>
               </div>
 
@@ -306,35 +288,22 @@ export default function DocweaveHub() {
                 <span className="text-sm">Auto-merge README commit</span>
               </div>
 
-              <div className="text-sm text-gray-400">
-                Last updated: 2 minutes ago
-              </div>
-
-              <div className="space-y-2">
-                <input
-                  type="password"
-                  placeholder="NVIDIA API Key"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full p-2 bg-gray-700 rounded border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
-                />
-                <button
-                  onClick={addRepository}
-                  disabled={isLoading || !newRepoUrl.trim() || !apiKey.trim()}
-                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-4 py-2 rounded w-full justify-center"
-                >
-                  {isLoading ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Plus className="w-4 h-4" />
-                  )}
-                  <span>
-                    {isLoading
-                      ? "Generating Documentation..."
-                      : "Add & Auto Generate Documentation"}
-                  </span>
-                </button>
-              </div>
+              <button
+                onClick={addRepository}
+                disabled={isLoading || !newRepoUrl.trim()}
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-4 py-2 rounded w-full justify-center mt-4"
+              >
+                {isLoading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                )}
+                <span>
+                  {isLoading
+                    ? "Generating Documentation..."
+                    : "Add & Auto Generate Documentation"}
+                </span>
+              </button>
             </div>
           </div>
 
@@ -356,15 +325,15 @@ export default function DocweaveHub() {
                       <span className="text-sm">{repo.name}</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {repo.hasDocumentation && (
-                        <button
-                          onClick={() => viewDocumentation(repo.id, repo.name)}
-                          className="p-1 hover:bg-gray-600 rounded"
-                          title="View Documentation"
-                        >
-                          <Eye className="w-4 h-4 text-blue-400" />
-                        </button>
-                      )}
+                      <a
+                        href={repo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 hover:bg-gray-600 rounded"
+                        title="Open Repository"
+                      >
+                        <ExternalLink className="w-4 h-4 text-blue-400" />
+                      </a>
                       {getStatusIcon(repo.status)}
                       <span className="text-sm text-gray-400">
                         {getStatusText(repo.status)}

@@ -3,12 +3,21 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { repoUrl, branch = "main", apiKey } = body;
+    const { repoUrl, branch = "main" } = body;
 
-    if (!repoUrl || !apiKey) {
+    if (!repoUrl) {
       return NextResponse.json(
-        { error: "Repository URL and API key are required" },
+        { error: "Repository URL is required" },
         { status: 400 }
+      );
+    }
+
+    // Get API key from environment variable
+    const apiKey = process.env.NVIDIA_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "NVIDIA API key not configured. Please set NVIDIA_API_KEY in .env.local" },
+        { status: 500 }
       );
     }
 

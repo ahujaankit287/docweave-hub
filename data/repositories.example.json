@@ -1,0 +1,37 @@
+{
+  "repositories": [
+    {
+      "id": "1",
+      "name": "example-docs-cli",
+      "url": "https://github.com/example/docs-cli.git",
+      "branch": "main",
+      "type": "integrated",
+      "status": "up-to-date",
+      "hasDocumentation": true,
+      "autoUpdate": true,
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "name": "example-api-service",
+      "url": "https://github.com/example/api-service.git",
+      "branch": "main",
+      "type": "integrated",
+      "status": "up-to-date",
+      "hasDocumentation": true,
+      "autoUpdate": false,
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "3",
+      "name": "example-microservice",
+      "url": "https://github.com/example/microservice.git",
+      "branch": "main",
+      "type": "integrated",
+      "status": "generating",
+      "hasDocumentation": false,
+      "autoUpdate": true,
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}

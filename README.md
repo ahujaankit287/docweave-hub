@@ -15,13 +15,19 @@ A modern web-based interface for the DocWeave documentation generation service, 
 
 ### Frontend (Next.js + React)
 - **DocweaveHub.jsx** - Main UI component replicating the provided design
+- **ManageIntegrations.jsx** - Repository management interface
 - **Tailwind CSS** - For styling and responsive design
 - **Lucide React** - For icons and UI elements
 
 ### Backend (Next.js API Routes)
 - **`/api/generate`** - Handles documentation generation requests
 - **`/api/repositories`** - CRUD operations for repository management
-- **`/api/status/[id]`** - Real-time status updates for generation jobs
+- **`/api/repositories/[id]`** - Individual repository operations (GET, PUT, DELETE)
+
+### Data Storage
+- **`data/repositories.json`** - JSON file storage for repository data
+- **`lib/repositoryStorage.js`** - File-based storage utilities
+- **`lib/storage.js`** - In-memory documentation storage
 
 ### Core Logic (Migrated from Python)
 - **`lib/analyzer.js`** - Repository analysis (equivalent to `analyzers.py`)
@@ -39,11 +45,17 @@ cd docweave-hub
 # Install dependencies
 npm install
 
+# Configure environment variables
+cp .env.example .env.local
+# Edit .env.local and add your NVIDIA API key
+
 # Start development server
 npm run dev
 ```
 
 The application will be available at `http://localhost:3000`
+
+**Note**: Make sure to add your NVIDIA API key to `.env.local` before starting the application.
 
 ## Usage
 
@@ -52,15 +64,15 @@ The application will be available at `http://localhost:3000`
 1. **Enter Repository URL** - Paste a Git repository URL (GitHub, GitLab, Bitbucket)
 2. **Set Branch** - Specify the branch to analyze (defaults to 'main')
 3. **Configure Options** - Enable auto-update on push, auto-merge commits
-4. **Add API Key** - Enter your NVIDIA API key for LLM generation
-5. **Generate** - Click "Add & Auto Generate Merge Requests"
+4. **Generate** - Click "Add & Auto Generate Documentation"
+
+The system will automatically use the API key configured in `.env.local`.
 
 ### Repository Status
 
-- **✅ Success** - Documentation generated successfully
+- **✅ Up-to-date** - Documentation generated successfully and current
 - **🔄 Generating** - Documentation generation in progress
 - **❌ Error** - Generation failed (check API key and repository access)
-- **📋 Up-to-date** - Documentation is current
 
 ### Documentation Preview
 
@@ -77,10 +89,10 @@ Generate documentation for a repository
 ```json
 {
   "repoUrl": "https://github.com/user/repo.git",
-  "branch": "main",
-  "apiKey": "your-nvidia-api-key"
+  "branch": "main"
 }
 ```
+Note: API key is read from environment variables on the server side.
 
 ### GET/POST `/api/repositories`
 Manage repository list
@@ -93,16 +105,10 @@ Manage repository list
 }
 ```
 
-### GET `/api/status/[id]`
-Check generation status
-```json
-{
-  "id": "generation-id",
-  "status": "generating|success|error",
-  "progress": 75,
-  "message": "Analyzing codebase..."
-}
-```
+### Repository Status Values
+- `generating` - Documentation is being generated
+- `up-to-date` - Documentation has been generated successfully
+- `error` - Documentation generation failed
 
 ## Migration from Python
 
@@ -127,20 +133,65 @@ This Next.js version maintains the same core functionality as the original Pytho
 
 ### Environment Variables
 
-```bash
-# Optional: Set default API key
-NVIDIA_API_KEY=your-api-key-here
+Create a `.env.local` file in the root directory:
 
-# Optional: Custom API base URL
-NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+```bash
+# Required: NVIDIA API Key for documentation generation
+NVIDIA_API_KEY=your_nvidia_api_key_here
+
+# Optional: Application name
+NEXT_PUBLIC_APP_NAME=Docweave Hub
 ```
 
-### API Key Setup
+### Getting Your NVIDIA API Key
 
-You can provide the NVIDIA API key in several ways:
-1. **UI Input** - Enter directly in the web interface
-2. **Environment Variable** - Set `NVIDIA_API_KEY`
-3. **Configuration File** - Add to `.env.local`
+1. Visit [NVIDIA Build](https://build.nvidia.com/)
+2. Sign up or log in to your account
+3. Navigate to API Keys section
+4. Generate a new API key
+5. Copy the key and add it to your `.env.local` file
+
+**Important**: The API key is now configured server-side for security. You no longer need to enter it in the UI.
+
+## Data Persistence
+
+Repository data is stored in a JSON file at `data/repositories.json`. This file is:
+- **Auto-generated** on first run with sample data
+- **Persistent** across server restarts
+- **Gitignored** to avoid committing local data
+- **Human-readable** for easy inspection and backup
+
+### Data Structure
+
+```json
+{
+  "repositories": [
+    {
+      "id": "1",
+      "name": "my-repo",
+      "url": "https://github.com/user/repo.git",
+      "branch": "main",
+      "type": "integrated",
+      "status": "up-to-date",
+      "hasDocumentation": true,
+      "autoUpdate": true,
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Backup and Migration
+
+To backup your repositories:
+```bash
+cp data/repositories.json data/repositories.backup.json
+```
+
+To migrate to a new instance:
+```bash
+cp data/repositories.backup.json /new-instance/data/repositories.json
+```
 
 ## Development
 
@@ -150,13 +201,25 @@ You can provide the NVIDIA API key in several ways:
 docweave-hub/
 ├── src/
 │   ├── app/
-│   │   ├── api/           # API routes
-│   │   ├── globals.css    # Global styles
-│   │   └── page.js        # Main page
+│   │   ├── api/
+│   │   │   ├── generate/route.js      # Documentation generation
+│   │   │   └── repositories/
+│   │   │       ├── route.js           # List/Create repositories
+│   │   │       └── [id]/route.js      # Update/Delete repository
+│   │   ├── manage/
+│   │   │   └── page.js                # Manage integrations page
+│   │   ├── globals.css                # Global styles
+│   │   └── page.js                    # Main page
 │   ├── components/
-│   │   └── DocweaveHub.jsx # Main UI component
+│   │   ├── DocweaveHub.jsx            # Main UI component
+│   │   └── ManageIntegrations.jsx     # Repository management UI
 │   └── lib/
-│       └── analyzer.js    # Repository analysis logic
+│       ├── analyzer.js                # Repository analysis logic
+│       ├── repositoryStorage.js       # JSON file storage
+│       └── storage.js                 # Documentation storage
+├── data/
+│   └── repositories.json              # Repository data (auto-generated)
+├── .env.local                         # Environment variables
 ├── package.json
 └── README.md
 ```

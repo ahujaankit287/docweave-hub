@@ -1,42 +1,22 @@
 import { NextResponse } from "next/server";
 import { setDocumentation } from "@/lib/storage";
-
-// In-memory storage for demo (use database in production)
-let repositories = [
-  {
-    id: "1",
-    name: "docs-internal-cli",
-    url: "https://github.com/example/docs-internal-cli.git",
-    type: "existing",
-    status: "success",
-    branch: "main",
-    lastUpdated: new Date().toISOString(),
-    hasDocumentation: true,
-  },
-  {
-    id: "2",
-    name: "mobile-app-api",
-    url: "https://github.com/example/mobile-app-api.git",
-    type: "existing",
-    status: "success",
-    branch: "main",
-    lastUpdated: new Date().toISOString(),
-    hasDocumentation: true,
-  },
-  {
-    id: "3",
-    name: "payment-microservice",
-    url: "https://github.com/example/payment-microservice.git",
-    type: "existing",
-    status: "success",
-    branch: "main",
-    lastUpdated: new Date().toISOString(),
-    hasDocumentation: true,
-  },
-];
+import {
+  getAllRepositories,
+  addRepository,
+  deleteRepository,
+} from "@/lib/repositoryStorage";
 
 export async function GET() {
-  return NextResponse.json({ repositories });
+  try {
+    const repositories = await getAllRepositories();
+    return NextResponse.json({ repositories });
+  } catch (error) {
+    console.error("Failed to fetch repositories:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch repositories" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request) {
@@ -51,32 +31,26 @@ export async function POST(request) {
       );
     }
 
-    const newRepo = {
-      id: Date.now().toString(),
+    const newRepo = await addRepository({
       name,
       url,
       branch,
       autoUpdate,
       type: "integrated",
       status: "generating",
-      lastUpdated: new Date().toISOString(),
-    };
-
-    repositories.push(newRepo);
+    });
 
     // Simulate documentation generation
-    setTimeout(() => {
-      const repo = repositories.find((r) => r.id === newRepo.id);
-      if (repo) {
-        repo.status = "success";
-        repo.hasDocumentation = true;
-        repo.lastUpdated = new Date().toISOString();
+    setTimeout(async () => {
+      try {
+        const { updateRepositoryStatus } = await import("@/lib/repositoryStorage");
+        await updateRepositoryStatus(newRepo.id, "up-to-date", true);
         
         // Generate sample documentation
-        setDocumentation(repo.id, `# ${repo.name} Documentation
+        setDocumentation(newRepo.id, `# ${newRepo.name} Documentation
 
 ## Service Overview
-Auto-generated documentation for ${repo.name}.
+Auto-generated documentation for ${newRepo.name}.
 
 ## Architecture
 [TODO: Add architecture details based on code analysis]
@@ -86,8 +60,8 @@ Auto-generated documentation for ${repo.name}.
 
 ## Setup & Installation
 \`\`\`bash
-git clone ${repo.url}
-cd ${repo.name}
+git clone ${newRepo.url}
+cd ${newRepo.name}
 # [TODO: Add specific setup instructions]
 \`\`\`
 
@@ -101,6 +75,8 @@ cd ${repo.name}
 [TODO: Add development workflow instructions]
 
 Generated on: ${new Date().toLocaleString()}`);
+      } catch (error) {
+        console.error("Failed to update repository status:", error);
       }
     }, 5000);
 
@@ -129,7 +105,7 @@ export async function DELETE(request) {
       );
     }
 
-    repositories = repositories.filter((repo) => repo.id !== id);
+    await deleteRepository(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
