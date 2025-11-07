@@ -62,6 +62,7 @@ export default function DocweaveHub() {
           url: newRepoUrl,
           branch: newRepoBranch,
           autoUpdate,
+          autoMerge,
         }),
       });
 
@@ -222,19 +223,9 @@ export default function DocweaveHub() {
           </div>
           <h1 className="text-xl font-semibold">Docweave Hub</h1>
         </div>
-        <div className="flex items-center space-x-4">
-          <a
-            href="/manage"
-            className="flex items-center space-x-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
-            title="Manage Integrations"
-          >
-            <Settings className="w-4 h-4" />
-            <span className="text-sm">Manage</span>
-          </a>
-          <div className="flex items-center space-x-2">
-            <User className="w-6 h-6" />
-            <ChevronDown className="w-4 h-4" />
-          </div>
+        <div className="flex items-center space-x-2">
+          <User className="w-6 h-6" />
+          <ChevronDown className="w-4 h-4" />
         </div>
       </header>
 
@@ -309,9 +300,21 @@ export default function DocweaveHub() {
 
           {/* Integrated Repositories */}
           <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-4">
-              Integrated Repositories
-            </h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">Integrated Repositories</h3>
+
+              <div className="flex items-center space-x-4">
+                <a
+                  href="/manage"
+                  className="flex items-center space-x-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                  title="Manage Integrations"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="text-sm">Manage</span>
+                </a>
+              </div>
+            </div>
+
             <div className="space-y-3">
               {repositories
                 .filter((repo) => repo.type === "integrated")

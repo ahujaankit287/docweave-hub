@@ -24,6 +24,7 @@ export default function ManageIntegrations() {
     url: "",
     branch: "",
     autoUpdate: false,
+    autoMerge: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState(null);
@@ -55,6 +56,7 @@ export default function ManageIntegrations() {
       url: repo.url,
       branch: repo.branch || "main",
       autoUpdate: repo.autoUpdate || false,
+      autoMerge: repo.autoMerge || false,
     });
   };
 
@@ -65,6 +67,7 @@ export default function ManageIntegrations() {
       url: "",
       branch: "",
       autoUpdate: false,
+      autoMerge: false,
     });
   };
 
@@ -321,8 +324,19 @@ export default function ManageIntegrations() {
                       />
                       <span className="text-sm">Auto-run on code change</span>
                     </div>
+
                     <div className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded" />
+                      <input
+                        type="checkbox"
+                        checked={editForm.autoMerge}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            autoMerge: e.target.checked,
+                          })
+                        }
+                        className="rounded"
+                      />
                       <span className="text-sm">Auto-merge README commit</span>
                     </div>
 
@@ -380,8 +394,16 @@ export default function ManageIntegrations() {
                             </div>
                           )}
                           <div>
-                            <span className="text-gray-500">Auto-update:</span>{" "}
+                            <span className="text-gray-500">Auto-run on code change:</span>{" "}
                             {repo.autoUpdate ? (
+                              <span className="text-green-400">Enabled</span>
+                            ) : (
+                              <span className="text-gray-400">Disabled</span>
+                            )}
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Auto-merge README:</span>{" "}
+                            {repo.autoMerge ? (
                               <span className="text-green-400">Enabled</span>
                             ) : (
                               <span className="text-gray-400">Disabled</span>

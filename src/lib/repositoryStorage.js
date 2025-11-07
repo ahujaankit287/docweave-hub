@@ -34,6 +34,7 @@ async function initializeStorage() {
             status: "up-to-date",
             hasDocumentation: true,
             autoUpdate: true,
+            autoMerge: true,
             lastUpdated: new Date().toISOString(),
           },
           {
@@ -45,6 +46,7 @@ async function initializeStorage() {
             status: "up-to-date",
             hasDocumentation: true,
             autoUpdate: false,
+            autoMerge: false,
             lastUpdated: new Date().toISOString(),
           },
           {
@@ -56,6 +58,7 @@ async function initializeStorage() {
             status: "up-to-date",
             hasDocumentation: true,
             autoUpdate: true,
+            autoMerge: false,
             lastUpdated: new Date().toISOString(),
           },
         ],

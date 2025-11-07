@@ -33,13 +33,14 @@ export async function PUT(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, url, branch, autoUpdate } = body;
+    const { name, url, branch, autoUpdate, autoMerge } = body;
 
     const updates = {};
     if (name !== undefined) updates.name = name;
     if (url !== undefined) updates.url = url;
     if (branch !== undefined) updates.branch = branch;
     if (autoUpdate !== undefined) updates.autoUpdate = autoUpdate;
+    if (autoMerge !== undefined) updates.autoMerge = autoMerge;
 
     const repository = await updateRepository(id, updates);
 

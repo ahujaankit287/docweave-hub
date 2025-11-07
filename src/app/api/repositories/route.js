@@ -22,7 +22,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, url, branch = "main", autoUpdate = false } = body;
+    const { name, url, branch = "main", autoUpdate = false, autoMerge = false } = body;
 
     if (!name || !url) {
       return NextResponse.json(
@@ -36,6 +36,7 @@ export async function POST(request) {
       url,
       branch,
       autoUpdate,
+      autoMerge,
       type: "integrated",
       status: "generating",
     });

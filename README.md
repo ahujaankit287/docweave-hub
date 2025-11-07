@@ -175,11 +175,25 @@ Repository data is stored in a JSON file at `data/repositories.json`. This file 
       "status": "up-to-date",
       "hasDocumentation": true,
       "autoUpdate": true,
+      "autoMerge": false,
       "lastUpdated": "2024-01-01T00:00:00.000Z"
     }
   ]
 }
 ```
+
+### Field Descriptions
+
+- **id**: Unique identifier for the repository
+- **name**: Repository name (extracted from URL)
+- **url**: Git repository URL
+- **branch**: Branch to analyze (default: "main")
+- **type**: Repository type (always "integrated")
+- **status**: Current status (`generating`, `up-to-date`, or `error`)
+- **hasDocumentation**: Whether documentation has been generated
+- **autoUpdate**: Auto-run documentation generation on code changes
+- **autoMerge**: Auto-merge README commit after generation
+- **lastUpdated**: ISO timestamp of last update
 
 ### Backup and Migration
 

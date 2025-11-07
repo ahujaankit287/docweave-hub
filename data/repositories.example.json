@@ -9,6 +9,7 @@
       "status": "up-to-date",
       "hasDocumentation": true,
       "autoUpdate": true,
+      "autoMerge": true,
       "lastUpdated": "2024-01-01T00:00:00.000Z"
     },
     {
@@ -20,6 +21,7 @@
       "status": "up-to-date",
       "hasDocumentation": true,
       "autoUpdate": false,
+      "autoMerge": false,
       "lastUpdated": "2024-01-01T00:00:00.000Z"
     },
     {
@@ -31,6 +33,7 @@
       "status": "generating",
       "hasDocumentation": false,
       "autoUpdate": true,
+      "autoMerge": false,
       "lastUpdated": "2024-01-01T00:00:00.000Z"
     }
   ]
