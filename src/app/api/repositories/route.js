@@ -44,11 +44,11 @@ export async function POST(request) {
     // Simulate documentation generation
     setTimeout(async () => {
       try {
-        const { updateRepositoryStatus } = await import("@/lib/repositoryStorage");
-        await updateRepositoryStatus(newRepo.id, "up-to-date", true);
+        const { updateRepository } = await import("@/lib/repositoryStorage");
+        const { saveDocumentation: saveDoc } = await import("@/lib/documentationStorage");
         
         // Generate sample documentation
-        setDocumentation(newRepo.id, `# ${newRepo.name} Documentation
+        const sampleDoc = `# ${newRepo.name} Documentation
 
 ## Service Overview
 Auto-generated documentation for ${newRepo.name}.
@@ -75,7 +75,20 @@ cd ${newRepo.name}
 ## Development
 [TODO: Add development workflow instructions]
 
-Generated on: ${new Date().toLocaleString()}`);
+Generated on: ${new Date().toLocaleString()}`;
+
+        // Save documentation to file
+        const filename = await saveDoc(newRepo.id, newRepo.name, sampleDoc);
+        
+        // Update repository with documentation file and status
+        await updateRepository(newRepo.id, {
+          documentationFile: filename,
+          hasDocumentation: true,
+          status: 'up-to-date'
+        });
+        
+        // Also store in memory for backward compatibility
+        setDocumentation(newRepo.id, sampleDoc);
       } catch (error) {
         console.error("Failed to update repository status:", error);
       }

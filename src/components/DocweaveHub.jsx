@@ -14,6 +14,7 @@ import {
   X,
   RefreshCw,
   ExternalLink,
+  Eye,
   Copy,
   Download,
   Bell,
@@ -77,7 +78,11 @@ export default function DocweaveHub() {
           type: "info",
           message: `Generating documentation for ${data.repository.name}...`,
         });
-        generateDocumentation(data.repository.id, newRepoUrl, newRepoBranch);
+        generateDocumentation(
+          data.repository.id,
+          newRepoUrl,
+          newRepoBranch
+        );
       }
     } catch (error) {
       console.error("Failed to add repository:", error);
@@ -96,6 +101,7 @@ export default function DocweaveHub() {
         body: JSON.stringify({
           repoUrl,
           branch,
+          repoId,
         }),
       });
 
@@ -144,6 +150,34 @@ export default function DocweaveHub() {
         message: "Failed to generate documentation. Please try again.",
       });
       setTimeout(() => setNotification(null), 5000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const viewDocumentation = async (repoId, repoName) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/documentation/${repoId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedDocumentation(data.documentation);
+        setSelectedRepoName(repoName);
+        setShowModal(true);
+      } else {
+        setNotification({
+          type: "error",
+          message: "Documentation not found",
+        });
+        setTimeout(() => setNotification(null), 3000);
+      }
+    } catch (error) {
+      console.error("Failed to fetch documentation:", error);
+      setNotification({
+        type: "error",
+        message: "Failed to load documentation",
+      });
+      setTimeout(() => setNotification(null), 3000);
     } finally {
       setIsLoading(false);
     }
@@ -328,6 +362,15 @@ export default function DocweaveHub() {
                       <span className="text-sm">{repo.name}</span>
                     </div>
                     <div className="flex items-center space-x-2">
+                      {repo.hasDocumentation && (
+                        <button
+                          onClick={() => viewDocumentation(repo.id, repo.name)}
+                          className="p-1 hover:bg-gray-600 rounded"
+                          title="View Documentation"
+                        >
+                          <Eye className="w-4 h-4 text-blue-400" />
+                        </button>
+                      )}
                       <a
                         href={repo.url}
                         target="_blank"

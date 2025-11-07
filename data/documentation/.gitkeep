@@ -1,0 +1,3 @@
+# This directory stores generated documentation files
+# Each repository's documentation is saved as a .md file
+# Files are named: {repo-name}-{repo-id}.md

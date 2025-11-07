@@ -14,6 +14,7 @@ import {
   Settings,
   ArrowLeft,
   ExternalLink,
+  Eye,
 } from "lucide-react";
 
 export default function ManageIntegrations() {
@@ -127,6 +128,12 @@ export default function ManageIntegrations() {
     }
   };
 
+  const viewDocumentation = async (repoId, repoName) => {
+    window.location.href = `/?view=${repoId}&name=${encodeURIComponent(
+      repoName
+    )}`;
+  };
+
   const regenerateDocumentation = async (repo) => {
     if (!confirm(`Regenerate documentation for "${repo.name}"?`)) {
       return;
@@ -140,6 +147,7 @@ export default function ManageIntegrations() {
         body: JSON.stringify({
           repoUrl: repo.url,
           branch: repo.branch || "main",
+          repoId: repo.id,
         }),
       });
 
@@ -159,8 +167,6 @@ export default function ManageIntegrations() {
       setIsLoading(false);
     }
   };
-
-
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -394,7 +400,9 @@ export default function ManageIntegrations() {
                             </div>
                           )}
                           <div>
-                            <span className="text-gray-500">Auto-run on code change:</span>{" "}
+                            <span className="text-gray-500">
+                              Auto-run on code change:
+                            </span>{" "}
                             {repo.autoUpdate ? (
                               <span className="text-green-400">Enabled</span>
                             ) : (
@@ -402,7 +410,9 @@ export default function ManageIntegrations() {
                             )}
                           </div>
                           <div>
-                            <span className="text-gray-500">Auto-merge README:</span>{" "}
+                            <span className="text-gray-500">
+                              Auto-merge README:
+                            </span>{" "}
                             {repo.autoMerge ? (
                               <span className="text-green-400">Enabled</span>
                             ) : (
@@ -413,6 +423,17 @@ export default function ManageIntegrations() {
                       </div>
 
                       <div className="flex items-center space-x-2">
+                        {repo.hasDocumentation && (
+                          <button
+                            onClick={() =>
+                              viewDocumentation(repo.id, repo.name)
+                            }
+                            className="p-2 hover:bg-gray-700 rounded transition-colors"
+                            title="View Documentation"
+                          >
+                            <Eye className="w-4 h-4 text-blue-400" />
+                          </button>
+                        )}
                         <a
                           href={repo.url}
                           target="_blank"

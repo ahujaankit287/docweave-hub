@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDocumentation, setDocumentation } from "@/lib/storage";
+import { getRepositoryById } from "@/lib/repositoryStorage";
+import { readDocumentation } from "@/lib/documentationStorage";
 
 export async function GET(request, { params }) {
   const { id } = await params;
@@ -11,20 +13,48 @@ export async function GET(request, { params }) {
     );
   }
 
-  const documentation = getDocumentation(id);
+  try {
+    // First, try to get documentation from file
+    const repository = await getRepositoryById(id);
+    
+    if (repository && repository.documentationFile) {
+      try {
+        const documentation = await readDocumentation(repository.documentationFile);
+        return NextResponse.json({
+          success: true,
+          documentation,
+          source: 'file',
+          filename: repository.documentationFile,
+          generatedAt: repository.lastUpdated,
+        });
+      } catch (fileError) {
+        console.warn('Failed to read documentation file, falling back to memory:', fileError);
+      }
+    }
 
-  if (!documentation) {
+    // Fallback to in-memory storage
+    const documentation = getDocumentation(id);
+
+    if (!documentation) {
+      return NextResponse.json(
+        { error: "Documentation not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      documentation,
+      source: 'memory',
+      generatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error fetching documentation:', error);
     return NextResponse.json(
-      { error: "Documentation not found" },
-      { status: 404 }
+      { error: "Failed to fetch documentation" },
+      { status: 500 }
     );
   }
-
-  return NextResponse.json({
-    success: true,
-    documentation,
-    generatedAt: new Date().toISOString(),
-  });
 }
 
 export async function POST(request, { params }) {

@@ -26,8 +26,10 @@ A modern web-based interface for the DocWeave documentation generation service, 
 
 ### Data Storage
 - **`data/repositories.json`** - JSON file storage for repository data
-- **`lib/repositoryStorage.js`** - File-based storage utilities
-- **`lib/storage.js`** - In-memory documentation storage
+- **`data/documentation/*.md`** - Generated documentation files
+- **`lib/repositoryStorage.js`** - File-based repository storage utilities
+- **`lib/documentationStorage.js`** - Documentation file management
+- **`lib/storage.js`** - In-memory documentation storage (fallback)
 
 ### Core Logic (Migrated from Python)
 - **`lib/analyzer.js`** - Repository analysis (equivalent to `analyzers.py`)
@@ -155,11 +157,20 @@ NEXT_PUBLIC_APP_NAME=Docweave Hub
 
 ## Data Persistence
 
-Repository data is stored in a JSON file at `data/repositories.json`. This file is:
+### Repository Data
+Repository metadata is stored in `data/repositories.json`:
 - **Auto-generated** on first run with sample data
 - **Persistent** across server restarts
 - **Gitignored** to avoid committing local data
 - **Human-readable** for easy inspection and backup
+
+### Documentation Files
+Generated documentation is saved as markdown files in `data/documentation/`:
+- **File naming**: `{repo-name}-{repo-id}.md`
+- **Linked to repositories** via `documentationFile` field
+- **Persistent** across server restarts
+- **Gitignored** to avoid committing generated content
+- **Viewable** via Eye icon in UI
 
 ### Data Structure
 
@@ -193,6 +204,7 @@ Repository data is stored in a JSON file at `data/repositories.json`. This file 
 - **hasDocumentation**: Whether documentation has been generated
 - **autoUpdate**: Auto-run documentation generation on code changes
 - **autoMerge**: Auto-merge README commit after generation
+- **documentationFile**: Filename of generated documentation (e.g., "my-repo-1.md")
 - **lastUpdated**: ISO timestamp of last update
 
 ### Backup and Migration
@@ -232,7 +244,9 @@ docweave-hub/
 │       ├── repositoryStorage.js       # JSON file storage
 │       └── storage.js                 # Documentation storage
 ├── data/
-│   └── repositories.json              # Repository data (auto-generated)
+│   ├── repositories.json              # Repository data (auto-generated)
+│   └── documentation/                 # Generated documentation files
+│       └── *.md                       # Individual repo documentation
 ├── .env.local                         # Environment variables
 ├── package.json
 └── README.md

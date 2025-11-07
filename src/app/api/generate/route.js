@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { saveDocumentation } from "@/lib/documentationStorage";
+import { updateRepository } from "@/lib/repositoryStorage";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { repoUrl, branch = "main" } = body;
+    const { repoUrl, branch = "main", repoId } = body;
 
     if (!repoUrl) {
       return NextResponse.json(
@@ -44,11 +46,14 @@ export async function POST(request) {
     // 4. Return the generated markdown
 
     // Generate documentation synchronously and return it
+    const repoName = repoUrl.split("/").pop()?.replace(".git", "") || "Repository";
     const documentation = await generateDocumentation(
       repoUrl,
       branch,
       apiKey,
-      generationId
+      generationId,
+      repoId,
+      repoName
     );
 
     return NextResponse.json({
@@ -56,7 +61,7 @@ export async function POST(request) {
       generationId,
       documentation,
       message: "Documentation generated successfully",
-      repoName: repoUrl.split("/").pop()?.replace(".git", "") || "Repository",
+      repoName,
     });
   } catch (error) {
     console.error("Generation error:", error);
@@ -71,7 +76,7 @@ function generateId() {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
 }
 
-async function generateDocumentation(repoUrl, branch, apiKey, generationId) {
+async function generateDocumentation(repoUrl, branch, apiKey, generationId, repoId, repoName) {
   try {
     // 1. Repository Analysis (equivalent to analyzers.py)
     const analysis = await analyzeRepository(repoUrl, branch);
@@ -79,13 +84,38 @@ async function generateDocumentation(repoUrl, branch, apiKey, generationId) {
     // 2. Generate documentation using LLM (or simulate for demo)
     const documentation = await generateWithLLM(analysis, apiKey);
 
-    // 3. Store result
+    // 3. Save documentation to file
+    let docFilename = null;
+    if (repoId && repoName) {
+      docFilename = await saveDocumentation(repoId, repoName, documentation);
+      
+      // 4. Update repository with documentation filename
+      await updateRepository(repoId, {
+        documentationFile: docFilename,
+        hasDocumentation: true,
+        status: 'up-to-date'
+      });
+    }
+
+    // 5. Store result in memory (for backward compatibility)
     await storeGeneratedDocs(generationId, documentation);
 
-    console.log(`Documentation generated for ${repoUrl}`);
+    console.log(`Documentation generated for ${repoUrl}${docFilename ? ` and saved as ${docFilename}` : ''}`);
     return documentation;
   } catch (error) {
     console.error(`Generation failed for ${repoUrl}:`, error);
+    
+    // Update repository status to error if repoId provided
+    if (repoId) {
+      try {
+        await updateRepository(repoId, {
+          status: 'error',
+          hasDocumentation: false
+        });
+      } catch (updateError) {
+        console.error('Failed to update repository status:', updateError);
+      }
+    }
     await storeGenerationError(generationId, error);
     throw error;
   }

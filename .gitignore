@@ -35,6 +35,7 @@ yarn-error.log*
 
 # data storage
 /data/repositories.json
+/data/documentation/*.md
 
 # vercel
 .vercel
