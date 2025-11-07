@@ -33,10 +33,6 @@ export default function DocweaveHub() {
   const [selectedRepoName, setSelectedRepoName] = useState("");
   const [notification, setNotification] = useState(null);
 
-  useEffect(() => {
-    fetchRepositories();
-  }, []);
-
   const fetchRepositories = async () => {
     try {
       const response = await fetch("/api/repositories");
@@ -78,11 +74,7 @@ export default function DocweaveHub() {
           type: "info",
           message: `Generating documentation for ${data.repository.name}...`,
         });
-        generateDocumentation(
-          data.repository.id,
-          newRepoUrl,
-          newRepoBranch
-        );
+        generateDocumentation(data.repository.id, newRepoUrl, newRepoBranch);
       }
     } catch (error) {
       console.error("Failed to add repository:", error);
@@ -164,6 +156,11 @@ export default function DocweaveHub() {
         setSelectedDocumentation(data.documentation);
         setSelectedRepoName(repoName);
         setShowModal(true);
+
+        // Clean up URL parameters after opening modal
+        if (window.location.search) {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
       } else {
         setNotification({
           type: "error",
@@ -182,6 +179,23 @@ export default function DocweaveHub() {
       setIsLoading(false);
     }
   };
+
+  // Handle URL parameters for viewing documentation
+  useEffect(() => {
+    fetchRepositories();
+
+    // Check for view parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewId = urlParams.get("view");
+    const viewName = urlParams.get("name");
+
+    if (viewId) {
+      // Delay to ensure component is ready
+      setTimeout(() => {
+        viewDocumentation(viewId, viewName || "Repository");
+      }, 500);
+    }
+  }, []);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(selectedDocumentation);
